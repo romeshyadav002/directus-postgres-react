@@ -1,6 +1,8 @@
 // app/page.tsx
 'use client';
 import { useEffect, useState } from 'react';
+import directus from '../../lib/directus';
+import { readItems } from '@directus/sdk';
 
 export default function HomePage() {
   const [articles, setArticles] = useState<any[]>([]);
@@ -8,14 +10,18 @@ export default function HomePage() {
   useEffect(() => {
     const fetchArticles = async () => {
       const token = localStorage.getItem('token');
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_DIRECTUS_URL}/items/articles`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-      const data = await res.json();
-      setArticles(data.data);
+      console.log({ token });
+      const data = await directus.request(readItems('articles'));
+      setArticles(data);
+
+      // const res = await fetch(
+      //   `${process.env.NEXT_PUBLIC_DIRECTUS_URL}/items/articles`,
+      //   {
+      //     headers: { Authorization: `Bearer ${token}` },
+      //   },
+      // );
+      // const data = await res.json();
+      // setArticles(data.data);
     };
 
     fetchArticles();

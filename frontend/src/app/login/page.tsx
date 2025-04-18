@@ -12,7 +12,8 @@ export default function LoginPage() {
   const handleSubmit = async () => {
     try {
       const token = await loginOrRegister(email, password);
-      localStorage.setItem('token', token);
+      console.log('setting localstorage', token);
+      localStorage.setItem('token', token as string);
       router.push('/');
     } catch (err) {
       alert('Failed to login/signup');

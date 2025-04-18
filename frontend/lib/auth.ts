@@ -1,20 +1,43 @@
-// lib/auth.ts
-import { login } from '@directus/sdk';
+const ADMIN_EMAIL = 'raojiromesh002@gmail.com';
+const ADMIN_PASSWORD = 'hitesh@1991';
+
 import directus from './directus';
 
 export async function loginOrRegister(email: string, password: string) {
   try {
-    // Try login first
+    // Try logging in
     const { access_token } = await directus.login(email, password);
-    // .request(login(email, password));
-    console.log({ access_token });
     return access_token;
   } catch {
-    // If login fails, register then login
-    // await directus.
-    // request(l(email, password))
-    // // .items('users').createOne({ email, password, role: 'user' });
-    // const { access_token } = await directus.auth.login({ email, password });
-    // return access_token;
+    // Login failed, try to create the user using admin credentials
+    try {
+      // Login as admin
+      const { access_token: adminAccessToken } = await directus.login(
+        ADMIN_EMAIL,
+        ADMIN_PASSWORD,
+      );
+      console.log({ adminAccessToken });
+
+      const response = await fetch('http://0.0.0.0:8055/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${adminAccessToken}`,
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+      const userCreationData = await response.json();
+      console.log({ userCreationData });
+
+      await directus.logout();
+      const { access_token } = await directus.login(email, password);
+      return access_token;
+    } catch (err) {
+      console.error('Error during signup and login:', err);
+      throw err;
+    }
   }
 }
